@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ClientService {
@@ -16,35 +15,57 @@ public class ClientService {
     @Autowired
     private ClientRepository clientRepository;
 
-    // S2008 : ajouter un client
+    // Ajouter un client
     public Client ajouterClient(Client client) {
         return clientRepository.save(client);
     }
 
-    // S2009 : trouver clients dont le nom commence par prefix
+    // Trouver clients dont le nom commence par
     public List<Client> trouverClientsParNom(String prefix) {
         return clientRepository.findByNomStartingWithIgnoreCase(prefix);
     }
 
-    // S2010 : modification complète d'un client
-    public Client modifierClient(Client client) throws Exception {
-        Optional<Client> clientBD = clientRepository.findById(client.getNoClient());
-        if (clientBD.isEmpty()) {
-            throw new Exception("Client non trouvé");
-        }
-        return clientRepository.save(client);
+    // Modification complète client + adresse
+    @Transactional
+    public Client modifierClient(Integer id, Client clientModifie) throws Exception {
+
+        Client clientBD = clientRepository.findById(id)
+                .orElseThrow(() -> new Exception("Client non trouvé"));
+
+        // infos client
+        clientBD.setNom(clientModifie.getNom());
+        clientBD.setPrenom(clientModifie.getPrenom());
+        clientBD.setEmail(clientModifie.getEmail());
+        clientBD.setNoTelephone(clientModifie.getNoTelephone());
+
+        // adresse
+        Adresse adresseBD = clientBD.getAdresse();
+        Adresse adresseNew = clientModifie.getAdresse();
+
+        adresseBD.setRue(adresseNew.getRue());
+        adresseBD.setCodePostal(adresseNew.getCodePostal());
+        adresseBD.setVille(adresseNew.getVille());
+
+        // Hibernate flush automatique
+        return clientBD;
     }
 
-    // S2011 : modifier uniquement l'adresse d'un client
+    // Modifier uniquement l'adresse
+    @Transactional
     public Client modifierAdresseClient(Integer noClient, Adresse nouvelleAdresse) throws Exception {
+
         Client client = clientRepository.findById(noClient)
                 .orElseThrow(() -> new Exception("Client non trouvé"));
 
-        client.setAdresse(nouvelleAdresse);
-        return clientRepository.save(client);
+        Adresse adresse = client.getAdresse();
+        adresse.setRue(nouvelleAdresse.getRue());
+        adresse.setCodePostal(nouvelleAdresse.getCodePostal());
+        adresse.setVille(nouvelleAdresse.getVille());
+
+        return client;
     }
 
-    // S3020 - suppression client
+    // Suppression client
     @Transactional
     public void supprimerClient(Integer noClient) throws Exception {
         if (!clientRepository.existsById(noClient)) {
