@@ -3,6 +3,7 @@ package fr.eni.ludotheque.bll;
 import fr.eni.ludotheque.bo.Adresse;
 import fr.eni.ludotheque.bo.Client;
 import fr.eni.ludotheque.dal.ClientRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,5 +42,14 @@ public class ClientService {
 
         client.setAdresse(nouvelleAdresse);
         return clientRepository.save(client);
+    }
+
+    // S3020 - suppression client
+    @Transactional
+    public void supprimerClient(Integer noClient) throws Exception {
+        if (!clientRepository.existsById(noClient)) {
+            throw new Exception("Client non trouvé");
+        }
+        clientRepository.deleteById(noClient);
     }
 }
