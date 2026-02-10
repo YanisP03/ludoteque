@@ -19,16 +19,16 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                // Désactivation CSRF (API REST)
                 .csrf(csrf -> csrf.disable())
 
-                // Règles de sécurité
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/**").authenticated()
+                        .requestMatchers("/api/jeux").permitAll()
+
+                        .requestMatchers("/api/clients/**").authenticated()
+
                         .anyRequest().permitAll()
                 )
 
-                // Authentification HTTP Basic
                 .httpBasic();
 
         return http.build();
